@@ -2,6 +2,10 @@
 
 A simple file manager for VS Code inspired by oil.nvim. Navigate directories like text buffers.
 
+<p align="center">
+    <video src="https://github.com/user-attachments/assets/e2aacf11-c92a-4b3f-a13a-aa542cb69fa8" alt="Oil VS Demo Video" width="600" controls />
+</p>
+
 ## What it does
 
 - Press `-` to open the current directory as a text document
