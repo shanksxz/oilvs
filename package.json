@@ -1,0 +1,92 @@
+{
+  "name": "oilvs",
+  "displayName": "Oil VS - Directory Editor",
+  "description": "A buffer-based, text-editable file manager for VS Code, inspired by oil.nvim for Neovim",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.102.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:oilvs.openDirectory"
+  ],
+  "main": "./dist/extension.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shanksxz/oilvs.git"
+  },
+  "author": "Somya Bhatt",
+  "keywords": [
+    "oil",
+    "oil.nvim",
+    "file manager",
+    "directory editor"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/shanksxz/oilvs/issues"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "oilvs.openDirectory",
+        "title": "Open Directory in Oil View",
+        "icon": "$(folder)"
+      },
+      {
+        "command": "oilvs.openItem",
+        "title": "Open File/Directory",
+        "icon": "$(go-to-file)"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "oilvs.openDirectory",
+        "key": "-",
+        "when": "editorTextFocus || explorerViewletFocus"
+      },
+      {
+        "command": "oilvs.openItem",
+        "key": "enter",
+        "when": "editorTextFocus && resourceScheme == oil"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "oilvs.openDirectory",
+          "when": "explorerResourceIsFolder",
+          "group": "navigation"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "pnpm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.102.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "20.x",
+    "@typescript-eslint/eslint-plugin": "^8.31.1",
+    "@typescript-eslint/parser": "^8.31.1",
+    "eslint": "^9.25.1",
+    "typescript": "^5.8.3",
+    "ts-loader": "^9.5.2",
+    "webpack": "^5.99.7",
+    "webpack-cli": "^6.0.1",
+    "@vscode/test-cli": "^0.0.11",
+    "@vscode/test-electron": "^2.5.2"
+  },
+  "packageManager": "pnpm@10.12.4+sha512.5ea8b0deed94ed68691c9bad4c955492705c5eeb8a87ef86bc62c74a26b037b08ff9570f108b2e4dbd1dd1a9186fea925e527f141c648e85af45631074680184"
+}

@@ -1,0 +1,8 @@
+node_modules/
+dist/
+out/
+*.vsix
+
+.vscode/settings.json
+.vscode/launch.json
+.vscode/extensions.json
