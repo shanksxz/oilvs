@@ -29,6 +29,26 @@
     "url": "https://github.com/shanksxz/oilvs/issues"
   },
   "contributes": {
+    "configuration": {
+      "title": "Oil VS",
+      "properties": {
+        "oilvs.iconType": {
+          "type": "string",
+          "enum": [
+            "ascii",
+            "nerd",
+            "none"
+          ],
+          "default": "ascii",
+          "description": "Type of icons to display in oil buffers"
+        },
+        "oilvs.customNerdIcons": {
+          "type": "object",
+          "default": {},
+          "description": "Custom nerd font icon mappings"
+        }
+      }
+    },
     "commands": [
       {
         "command": "oilvs.openDirectory",
@@ -39,13 +59,28 @@
         "command": "oilvs.openItem",
         "title": "Open File/Directory",
         "icon": "$(go-to-file)"
+      },
+      {
+        "command": "oilvs.toggleIconType",
+        "title": "Toggle Icon Type",
+        "category": "Oil VS"
+      },
+      {
+        "command": "oilvs.goUpLevel",
+        "title": "Go Up One Level",
+        "category": "Oil VS"
       }
     ],
     "keybindings": [
       {
         "command": "oilvs.openDirectory",
         "key": "-",
-        "when": "editorTextFocus || explorerViewletFocus"
+        "when": "editorTextFocus && resourceScheme != oil || explorerViewletFocus"
+      },
+      {
+        "command": "oilvs.goUpLevel",
+        "key": "-",
+        "when": "editorTextFocus && resourceScheme == oil"
       },
       {
         "command": "oilvs.openItem",

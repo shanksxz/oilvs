@@ -22,6 +22,28 @@ A simple file manager for VS Code inspired by oil.nvim. Navigate directories lik
 
 That's it!
 
+## Customizing Keybindings
+
+You can customize any keybinding through VS Code's settings:
+
+1. Open Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
+2. Type "Preferences: Open Keyboard Shortcuts"
+3. Search for "Oil VS" commands:
+   - `Oil VS: Open Directory in Oil View` (default: `-`)
+   - `Oil VS: Go Up One Level` (default: `-`)
+   - `Oil VS: Open File/Directory` (default: `Enter`)
+
+Or add to your `keybindings.json`:
+```json
+[
+  {
+    "key": "your-preferred-key",
+    "command": "oilvs.goUpLevel",
+    "when": "editorTextFocus && resourceScheme == oil"
+  }
+]
+```
+
 ## File indicators
 
 - `[DIR]` - folders
