@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
+import { ErrorHandler } from "../utils/error-handler";
 import { URI_SCHEME } from "../constants";
 
 export class PathResolver {
@@ -24,7 +25,7 @@ export class PathResolver {
             } else if (vscode.workspace.workspaceFolders) {
                 targetPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
             } else {
-                vscode.window.showErrorMessage("No workspace folder found");
+                ErrorHandler.showOilError("No workspace folder found");
                 return null;
             }
         }
@@ -35,9 +36,7 @@ export class PathResolver {
                 targetPath = path.dirname(targetPath);
             }
         } catch (error) {
-            vscode.window.showErrorMessage(
-                `Cannot access directory: ${targetPath}`
-            );
+            ErrorHandler.showDirectoryError("access", targetPath, error);
             return null;
         }
 

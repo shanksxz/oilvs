@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import * as path from "path";
 import { DocumentProvider } from "../providers/document-provider";
+import { CursorUtils } from "./cursor-utils";
 import { URI_SCHEME } from "../constants";
 
 export class BufferManager {
@@ -24,10 +24,16 @@ export class BufferManager {
                 this.provider.focusOnEntry(focusFileName);
                 setTimeout(
                     () =>
-                        this.positionCursorOnFocusedEntry(
+                        CursorUtils.positionCursorOnEntry(
                             activeEditor,
                             focusFileName
                         ),
+                    100
+                );
+            } else {
+                //? position cursor at the top when no specific focus is needed
+                setTimeout(
+                    () => CursorUtils.positionCursorAtTop(activeEditor),
                     100
                 );
             }
@@ -50,81 +56,23 @@ export class BufferManager {
                 this.provider.focusOnEntry(focusFileName);
                 setTimeout(
                     () =>
-                        this.positionCursorOnFocusedEntry(
+                        CursorUtils.positionCursorOnEntry(
                             editor,
                             focusFileName
                         ),
+                    100
+                );
+            } else {
+                //? position cursor at the top when no specific focus is needed
+                setTimeout(
+                    () => CursorUtils.positionCursorAtTop(editor),
                     100
                 );
             }
         }
     }
 
-    /**
-     * Position cursor on the focused entry in the oil buffer
-     */
-    private positionCursorOnFocusedEntry(
-        editor: vscode.TextEditor,
-        focusFileName: string
-    ): void {
-        if (!focusFileName || !editor || !editor.document) {
-            return;
-        }
 
-        const document = editor.document;
-        const text = document.getText();
-        const lines = text.split("\n");
 
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
 
-            if (!line.trim() || line.startsWith("#")) {
-                continue;
-            }
-
-            const extractedName = this.extractEntryNameFromLine(line);
-
-            if (extractedName === focusFileName) {
-                const position = new vscode.Position(i, 0);
-                const selection = new vscode.Selection(position, position);
-                editor.selection = selection;
-                editor.revealRange(
-                    new vscode.Range(position, position),
-                    vscode.TextEditorRevealType.InCenter
-                );
-                return;
-            }
-        }
-
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            if (line.trim() && !line.startsWith("#")) {
-                const position = new vscode.Position(i, 0);
-                const selection = new vscode.Selection(position, position);
-                editor.selection = selection;
-                editor.revealRange(
-                    new vscode.Range(position, position),
-                    vscode.TextEditorRevealType.InCenter
-                );
-                return;
-            }
-        }
-    }
-
-    /**
-     * Extract entry name from oil buffer line
-     */
-    private extractEntryNameFromLine(line: string): string | null {
-        //? remove ASCII-style icons like [DIR], [FILE], [JS], etc.
-        const withoutIcon = line.replace(/^\[[\w]+\]\s+/, "");
-
-        //? remove trailing slash for directories
-        const name = withoutIcon.replace(/\/$/, "");
-
-        if (name && !name.includes("/") && name !== "..") {
-            return name;
-        }
-
-        return null;
-    }
 }
