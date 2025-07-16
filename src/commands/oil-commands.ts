@@ -3,6 +3,8 @@ import * as path from "path";
 import * as fs from "fs";
 import { BufferManager } from "../services/buffer-manager";
 import { PathResolver } from "../services/path-resolver";
+import { IconUtils } from "../services/icon-utils";
+import { ErrorHandler } from "../utils/error-handler";
 import { COMMANDS, URI_SCHEME } from "../constants";
 
 export class OilCommands {
@@ -25,7 +27,22 @@ export class OilCommands {
             this.handleOpenItem.bind(this)
         );
 
-        context.subscriptions.push(openDirectoryCommand, openItemCommand);
+        const toggleIconCommand = vscode.commands.registerCommand(
+            "oilvs.toggleIconType",
+            this.handleToggleIconType.bind(this)
+        );
+
+        const goUpLevelCommand = vscode.commands.registerCommand(
+            COMMANDS.GO_UP_LEVEL,
+            this.handleGoUpLevel.bind(this)
+        );
+
+        context.subscriptions.push(
+            openDirectoryCommand, 
+            openItemCommand, 
+            toggleIconCommand,
+            goUpLevelCommand
+        );
     }
 
     /**
@@ -52,17 +69,15 @@ export class OilCommands {
             this.pathResolver.getCurrentDirectoryFromBuffer(content);
 
         if (!currentPath) {
-            vscode.window.showErrorMessage(
-                "Cannot determine directory path from oil document"
-            );
+            ErrorHandler.showOilError("Cannot determine directory path from oil document");
             return;
         }
 
         const parentPath = path.dirname(currentPath);
 
         if (parentPath !== currentPath) {
-            const currentDirName = path.basename(currentPath);
-            await this.bufferManager.openBuffer(parentPath, currentDirName);
+            //? when going up, position cursor at top instead of focusing on current dir
+            await this.bufferManager.openBuffer(parentPath);
         }
     }
 
@@ -84,6 +99,20 @@ export class OilCommands {
         }
 
         await this.bufferManager.openBuffer(targetPath, focusFileName);
+    }
+
+    /**
+     * Handle going up one level (dedicated command for Oil view)
+     */
+    private async handleGoUpLevel(): Promise<void> {
+        const activeEditor = vscode.window.activeTextEditor;
+        
+        if (!activeEditor || activeEditor.document.uri.scheme !== URI_SCHEME) {
+            ErrorHandler.showContextError("This command", "in Oil view");
+            return;
+        }
+
+        await this.handleParentNavigation(activeEditor);
     }
 
     /**
@@ -109,9 +138,7 @@ export class OilCommands {
             this.pathResolver.getCurrentDirectoryFromBuffer(content);
 
         if (!directoryPath) {
-            vscode.window.showErrorMessage(
-                "Cannot determine directory path from oil document"
-            );
+            ErrorHandler.showOilError("Cannot determine directory path from oil document");
             return;
         }
 
@@ -125,7 +152,7 @@ export class OilCommands {
         directoryPath: string,
         lineText: string
     ): Promise<void> {
-        const entryName = this.extractEntryNameFromLine(lineText);
+        const entryName = IconUtils.extractEntryName(lineText);
         if (!entryName) {
             return;
         }
@@ -138,30 +165,59 @@ export class OilCommands {
             if (stat.isDirectory()) {
                 await this.bufferManager.openBuffer(fullPath);
             } else {
+                //? open the file in the same view column, which should replace the oil tab
                 const fileUri = vscode.Uri.file(fullPath);
                 await vscode.window.showTextDocument(fileUri, {
                     viewColumn: vscode.ViewColumn.Active,
                     preserveFocus: false,
                     preview: false,
                 });
+                
+                //? close any remaining oil tabs
+                const oilTabs = vscode.window.tabGroups.all
+                    .flatMap(group => group.tabs)
+                    .filter(tab => tab.input instanceof vscode.TabInputText && 
+                                 tab.input.uri.scheme === URI_SCHEME);
+                
+                for (const oilTab of oilTabs) {
+                    await vscode.window.tabGroups.close(oilTab);
+                }
             }
         } catch (error) {
-            vscode.window.showErrorMessage(`Cannot open: ${fullPath}`);
+            ErrorHandler.showFileError("open", fullPath, error);
         }
     }
 
     /**
-     * Extract entry name from oil buffer line
+     * Handle toggling between icon types
      */
-    private extractEntryNameFromLine(line: string): string | null {
-        const withoutIcon = line.replace(/^\[[\w]+\]\s+/, "");
+    private async handleToggleIconType(): Promise<void> {
+        const options = [
+            { label: "ASCII Icons", value: "ascii" as const },
+            { label: "Nerd Font Icons", value: "nerd" as const },
+            { label: "No Icons", value: "none" as const }
+        ];
 
-        const name = withoutIcon.replace(/\/$/, "");
+        const selected = await vscode.window.showQuickPick(options, {
+            placeHolder: "Select icon type"
+        });
 
-        if (name && !name.includes("/") && name !== "..") {
-            return name;
+        if (selected) {
+            IconUtils.setIconType(selected.value);
+            
+            //? refresh current oil buffer if open
+            const activeEditor = vscode.window.activeTextEditor;
+            if (activeEditor && activeEditor.document.uri.scheme === URI_SCHEME) {
+                const content = activeEditor.document.getText();
+                const currentPath = this.pathResolver.getCurrentDirectoryFromBuffer(content);
+                if (currentPath) {
+                    await this.bufferManager.openBuffer(currentPath);
+                }
+            }
+            
+            vscode.window.showInformationMessage(`Icon type changed to: ${selected.label}`);
         }
-
-        return null;
     }
+
+
 }

@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
+import { IconUtils } from "../services/icon-utils";
 import { URI_SCHEME } from "../constants";
 
 export class DocumentProvider implements vscode.TextDocumentContentProvider {
@@ -50,8 +51,12 @@ export class DocumentProvider implements vscode.TextDocumentContentProvider {
         });
 
         const sortedEntries = entries.sort((a, b) => {
-            if (a.isDirectory() && !b.isDirectory()) return -1;
-            if (!a.isDirectory() && b.isDirectory()) return 1;
+            if (a.isDirectory() && !b.isDirectory()) {
+                return -1;
+            }
+            if (!a.isDirectory() && b.isDirectory()) {
+                return 1;
+            }
             return a.name.localeCompare(b.name);
         });
 
@@ -80,34 +85,9 @@ export class DocumentProvider implements vscode.TextDocumentContentProvider {
 
     /**
      * Get appropriate icon for file/directory
-     * Using ASCII characters instead
-     * TODO: use file icons instead
      */
     private getFileIcon(entry: fs.Dirent): string {
-        if (entry.isDirectory()) {
-            return "[DIR]";
-        }
-
-        const ext = path.extname(entry.name).toLowerCase();
-        const iconMap: { [key: string]: string } = {
-            ".js": "[JS]",
-            ".ts": "[TS]",
-            ".json": "[JSON]",
-            ".md": "[MD]",
-            ".txt": "[TXT]",
-            ".html": "[HTML]",
-            ".css": "[CSS]",
-            ".png": "[IMG]",
-            ".jpg": "[IMG]",
-            ".jpeg": "[IMG]",
-            ".gif": "[IMG]",
-            ".svg": "[IMG]",
-            ".pdf": "[PDF]",
-            ".zip": "[ZIP]",
-            ".git": "[GIT]",
-        };
-
-        return iconMap[ext] || "[FILE]";
+        return IconUtils.getIconForEntry(entry.name, entry.isDirectory());
     }
 
     /**
