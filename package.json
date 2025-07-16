@@ -2,7 +2,7 @@
   "name": "oilvs",
   "displayName": "Oil VS - Directory Editor",
   "description": "A buffer-based, text-editable file manager for VS Code, inspired by oil.nvim for Neovim",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.102.0"
   },
